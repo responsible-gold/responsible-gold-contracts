@@ -25,7 +25,10 @@ contract RGSmartAccountManager_v10 {
     ///@param name Custom name of RGSA
     function initAccount(string name) external returns(bool){
         bytes32 seed = sha256(name, msg.sender);
-        require(address(idToAccount[seed]) == 0x0);
+        if(address(idToAccount[seed]) != 0x0){
+            Error('Account already excist');
+            return false;
+        };
         RGSmartAccount_v10 account = new RGSmartAccount_v10(name, 'RGSA', 2);
         account.transfer(msg.sender, account.totalSupply());
         accounts[totalAccounts] = seed;
@@ -45,7 +48,7 @@ contract RGSmartAccountManager_v10 {
     function resetAccount(string name, address[] signers, uint256[] distribution) external returns(bool){
         bytes32 seed = sha256(name, msg.sender);
         RGSmartAccount_v10 account = idToAccount[seed];
-        if(address(account)!=0x0){
+        if(address(account)==0x0){
             Error('Account does not excist');
             return false;
         }
@@ -64,7 +67,7 @@ contract RGSmartAccountManager_v10 {
     ///@param newAdmin New admin address
     function resetAdmin(string name, address newAdmin) external returns(bool){
         bytes32 seed = sha256(name, msg.sender);
-        if(address(idToAccount[seed])!=0x0){
+        if(address(idToAccount[seed])==0x0){
             Error('Account does not excist');
             return false;
         }
