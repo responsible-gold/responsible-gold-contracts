@@ -11,28 +11,22 @@ contract RGSmartAccount_v10{
     string public symbol;
     ///@notice 2 by default (precision)
     uint8 public decimals;
-
     ///@notice 100^(10^precision) by default
     uint256 public totalSupply;
     ///@notice number of account users
     uint256 public totalSigners;
-
     ///@notice RGSA balance
     ///@dev Is utilized as distribution percent
     mapping(address => uint) public balanceOf;
-
     ///@notice RGSA allowance
     mapping(address => mapping(address => uint)) public allowance;
-
-    ///@notice hash of manager contract
-    bytes32 private managerId;
-
-    ///@notice Signer to user hash
-    ///@dev The hashes are counted internally using sha256
-    mapping(bytes32 => address) public idToSigner;
+    ///@notice Signer "is registered" flag
+    mapping(address => bool) public isSigner;
     ///@notice List of signers
     ///@dev Contains users hashes
-    mapping(uint256 => bytes32) public signers;
+    mapping(uint256 => address) public signers;
+    ///@notice hash of manager contract
+    bytes32 private managerId;
 
 
     function RGSmartAccount_v10(string _name, string _symbol, uint8 _decimals) public{
@@ -69,9 +63,8 @@ contract RGSmartAccount_v10{
         uint256 percent = totalDistributuon / totalSupply;
     
         for(uint256 i=0; i<totalSigners; i++){
-            address signer = idToSigner[signers[i]];
-            uint256 signerDistribution = balanceOf[signer] * percent;
-            ERC20Interface(token).transfer(signer, signerDistribution);
+            uint256 signerDistribution = balanceOf[signers[i]] * percent;
+            ERC20Interface(token).transfer(signers[i], signerDistribution);
             Distribution(token, msg.sender, signerDistribution);
         }
         return true;
@@ -144,7 +137,7 @@ contract RGSmartAccount_v10{
         uint indexSearch;
         uint indexStep;
         while(indexStep<totalSigners){
-            address signer = idToSigner[signers[indexSearch]];
+            address signer = signers[indexSearch];
             if(signer!=address(0)){
                 uint balance = balanceOf[signer];
                 if(balance > 0){
@@ -161,7 +154,7 @@ contract RGSmartAccount_v10{
     }
 
     ///@notice Counts admin hash
-    ///@dev Can be called inly bu manager
+    ///@dev Can be called only by manager
     ///@param user User address
     ///@return Counted hash
     function getAdminHash(address user) external returns (bytes32){
@@ -185,11 +178,10 @@ contract RGSmartAccount_v10{
     ///@dev Is called when user balance becomes > 0
     ///@param user User to add
     function _addUser(address user) internal{
-        bytes32 seed = sha256(user, address(this));
-        idToSigner[seed] = user;
+        isSigner[user] = true;
         for(uint i=0; i<totalSigners+1; i++){
-            if(signers[i] == bytes32(0)){
-                signers[i] = seed;
+            if(signers[i] == address(0)){
+                signers[i] = user;
             }
         }
         totalSigners++;
@@ -199,14 +191,12 @@ contract RGSmartAccount_v10{
     ///@dev Is called when user balance becomes == 0
     ///@param user User to remove
     function _removeUser(address user) internal{
-        bytes32 seed = sha256(user, address(this));
-        
-        idToSigner[seed] = address(0);
+        isSigner[user] = true;
         uint256 signersLeft = totalSigners;
         uint index;
         while(signersLeft>0){
-            if(signers[index] == seed){
-                signers[index] = bytes32(0);
+            if(signers[index] == user){
+                signers[index] = address(0);
             }
             index++;
             signersLeft--;

@@ -79,7 +79,5 @@ contract("SmartAccount & Manager", (accounts)=>{
         resetAccount(i);
         distribute(i);
     }
-
     managerOpts();
-
 })
