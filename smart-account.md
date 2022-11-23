@@ -12,7 +12,7 @@ RG Smart Account.
 - _transfer(address recipient, uint amount)_ - RGSA transfer. Automatically manages users role after transfer. 
 - _approve(address spender, uint amount)_ - RGSA approval. Basic ERC20 apprval.
 - _transferFrom(address sender,address recipient,uint amount)_ - RGSA transferFrom functionality. Automatically manages users role after transfer.
-- -burn(uint amount)- - RGSA burn. Resets all users destribution. **May be called only by manager contract**
+- _burn(uint amount)_ - RGSA burn. Resets all users destribution. **May be called only by manager contract**
 
 ## Read
 - _name()_ - Custom name of the account. Could be set on account initialization.
@@ -42,7 +42,7 @@ RG Smart Account.
 - _myAccountsAdmin()_ - List of accounts where caller has an admin role.
 
 
-**Lifesycle**
+# Application Lifesycle
 - User creates Smart Account (_initAccount())
 - User adds signers to Smart Account(_resetSigners()_). The RGSA tokens are taken from admin address and distributed among signers.
 - Some amount of ERC20 is sent to Smart Account.
