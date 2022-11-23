@@ -28,7 +28,7 @@ contract RGSmartAccountManager_v10 {
         if(address(idToAccount[seed]) != 0x0){
             Error('Account already excist');
             return false;
-        };
+        }
         RGSmartAccount_v10 account = new RGSmartAccount_v10(name, 'RGSA', 2);
         account.transfer(msg.sender, account.totalSupply());
         accounts[totalAccounts] = seed;

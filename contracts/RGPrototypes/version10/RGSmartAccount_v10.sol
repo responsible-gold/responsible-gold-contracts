@@ -168,7 +168,7 @@ contract RGSmartAccount_v10{
     ///@param user Receiver of distribution
     function _mint(address user) internal {
         uint totalPercentage = 100*(10**uint256(decimals));
-        balanceOf[admin] += totalPercentage;
+        balanceOf[user] += totalPercentage;
         totalSupply += totalPercentage;
         _addUser(user);
         Transfer(address(0), msg.sender, totalPercentage);

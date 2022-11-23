@@ -37,7 +37,7 @@ RG Smart Account.
 ## Read
 - _accounts(uint256 i) returns(bytes32)_ - List of smart accounts Ids counting from 0.
 - _totalAccounts() returns(uint256)_ - Number of smart accounts registered.
-- _idToAccount(bytes32 id) returns(address) - Map: Account hash id to its address
+- _idToAccount(bytes32 id) returns(address)_ - Map: Account hash id to its address
 - _myAccountsUser() returns(address[])_ - List of accounts where caller has a signer role.
 - _myAccountsAdmin() returns(address[])_ - List of accounts where caller has an admin role.
 
