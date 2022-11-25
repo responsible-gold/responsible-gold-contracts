@@ -55,20 +55,10 @@ contract RGSmartAccount_v10{
         }
         uint256 change = balance % totalSupply;
         uint256 percent = (balance - change) / totalSupply;
-        uint indexStep = totalSigners;
-        uint indexSearch;
-        for(uint256 i=0; i<indexStep; i++){
-            if(indexSearch==totalSigners){
-                break;
-            }
-            if(signers[i]==address(0)){
-                indexStep++;
-                continue;
-            }
+        for(uint256 i=0; i < totalSigners; i++){
             uint256 signerDistribution = balanceOf[signers[i]] * percent;
             ERC20Interface(token).transfer(signers[i], signerDistribution);
             Distribution(token, signers[i], signerDistribution);
-            indexSearch++;
         }
 
         return true;
