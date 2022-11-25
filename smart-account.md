@@ -14,7 +14,7 @@ RG Smart Account.
 - _transferFrom(address sender,address recipient,uint amount) returns(bool)_ - RGSA transferFrom functionality. Automatically manages users role after transfer.
 - _burn(uint amount) returns(bool)_ - RGSA burn. Resets all users destribution. **May be called only by manager contract**
 
-## Read
+## Read:
 - _name() returns(string)_ - Custom name of the account. Could be set on account initialization.
 - _symbol() returns(string)_ - ERC20 ticker. "RGSA" by default.
 - _decimals() returns(uint8)_ - ERC20 preceision. 2 by default.
@@ -34,7 +34,7 @@ RG Smart Account.
 - _resetAdmin(string name, address newAdmin) returns(bool)_ - Pass ownership to another address. Previous owner will not be able to roll back the operation. **Only owner of the account can reset admin**
 - _distribute(ERC20Interface token) returns(bool)_ - Calls "distribute" for the provided ERC20 for the service porpose.
 
-## Read
+## Read:
 - _accounts(uint256 i) returns(bytes32)_ - List of smart accounts Ids counting from 0.
 - _totalAccounts() returns(uint256)_ - Number of smart accounts registered.
 - _idToAccount(bytes32 id) returns(address)_ - Map: Account hash id to its address
@@ -42,7 +42,7 @@ RG Smart Account.
 - _myAccountsAdmin() returns(address[])_ - List of accounts where caller has an admin role.
 
 
-# Application Lifesycle
+# Application Lifesycle:
 - User creates Smart Account (_initAccount())
 - User adds signers to Smart Account(_resetSigners()_). The RGSA tokens are taken from admin address and distributed among signers.
 - Some amount of ERC20 is sent to Smart Account.

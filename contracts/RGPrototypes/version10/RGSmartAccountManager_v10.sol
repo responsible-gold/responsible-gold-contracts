@@ -53,9 +53,11 @@ contract RGSmartAccountManager_v10 {
             return false;
         }
         account.burn(account.totalSupply());
+        require(account.balanceOf(address(this))==account.totalSupply());
         for(uint256 i = 0; i < signers.length; i++){
             account.transfer(signers[i], distribution[i]);
         }
+        
         require(account.balanceOf(address(this)) == 0);
         AccountReset(name, signers.length);
         return true;
@@ -89,7 +91,7 @@ contract RGSmartAccountManager_v10 {
         for(uint i=0; i<totalAccounts; i++){
             bytes32 seed = accounts[i];
             RGSmartAccount_v10 account = idToAccount[seed];
-            account.distrubute(token);
+            account.distribute(token);
         }
         Distribution(token);
     }

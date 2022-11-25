@@ -47,26 +47,30 @@ contract RGSmartAccount_v10{
     ///@notice Distributes asset balance between users
     ///@dev Utilizes users RGSA balance to count distribution
     ///@param token Asset that has to be distributed 
-    function distrubute(address token) external returns(bool){
+    function distribute(address token) external returns(bool){
         uint256 balance = ERC20Interface(token).balanceOf(address(this));
-        if(balance > totalSupply){
-            Error('Account must be reset');
+        if(balance < totalSupply){
+            Error('Not enough tokens');
             return false;
         }
-        ERC20Interface(token).transfer(msg.sender, balance);
-        uint256 rawDistribution = ERC20Interface(token).balanceOf(address(this));
-        uint256 totalDistributuon = rawDistribution % totalSupply;
-        uint256 change = rawDistribution - totalDistributuon;
-        if(change>0){
-            ERC20Interface(token).transfer(msg.sender, change);
-        }
-        uint256 percent = totalDistributuon / totalSupply;
-    
-        for(uint256 i=0; i<totalSigners; i++){
+        uint256 change = balance % totalSupply;
+        uint256 percent = (balance - change) / totalSupply;
+        uint indexStep = totalSigners;
+        uint indexSearch;
+        for(uint256 i=0; i<indexStep; i++){
+            if(indexSearch==totalSigners){
+                break;
+            }
+            if(signers[i]==address(0)){
+                indexStep++;
+                continue;
+            }
             uint256 signerDistribution = balanceOf[signers[i]] * percent;
             ERC20Interface(token).transfer(signers[i], signerDistribution);
-            Distribution(token, msg.sender, signerDistribution);
+            Distribution(token, signers[i], signerDistribution);
+            indexSearch++;
         }
+
         return true;
     }
 
@@ -76,11 +80,13 @@ contract RGSmartAccount_v10{
     ///@param amount Asset distribution amount
     function transfer(address recipient, uint amount) public returns (bool) {
         require(balanceOf[msg.sender]>=amount);
-        if(balanceOf[recipient]==0){
-            _addUser(recipient);
-        }
+        
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
+
+        if(balanceOf[recipient] > 0){
+            _addUser(recipient);
+        }
 
         if(balanceOf[msg.sender] == 0){ 
             _removeUser(msg.sender);
@@ -112,17 +118,18 @@ contract RGSmartAccount_v10{
         require(allowance[sender][msg.sender]>=amount);
         require(balanceOf[sender]>=amount);
 
-        if(balanceOf[recipient]==0){
-            _addUser(sender);
-        }
-
         allowance[sender][msg.sender] -= amount;
         balanceOf[sender] -= amount;
         balanceOf[recipient] += amount;
 
+        if(balanceOf[recipient] > 0){
+            _addUser(recipient);
+        }
+
         if(balanceOf[sender] == 0){
             _removeUser(sender);
         }
+
         Transfer(sender, recipient, amount);
         return true;
     }
@@ -134,22 +141,16 @@ contract RGSmartAccount_v10{
         bytes32 seed = sha256(msg.sender, address(this));
         require(seed==managerId);
         require(amount == totalSupply);
-        uint indexSearch;
-        uint indexStep;
-        while(indexStep<totalSigners){
-            address signer = signers[indexSearch];
-            if(signer!=address(0)){
-                uint balance = balanceOf[signer];
-                if(balance > 0){
-                    balanceOf[msg.sender] += balanceOf[signer];
-                    Burn(signer, balanceOf[signer]);
-                    balanceOf[signer] = 0;
-                    _removeUser(signer);
-                }
-                indexStep++;     
-            }
-            indexSearch++;
+        for(uint i=0; i < totalSigners; i++){
+            address signer = signers[i];
+            balanceOf[signer] = 0;
+            isSigner[signer] = false;
+            signers[i] = address(0);
         }
+        signers[0] = msg.sender;
+        balanceOf[msg.sender] = totalSupply;
+        isSigner[msg.sender] = true;
+        totalSigners=1;
         return true;
     }
 
@@ -178,12 +179,11 @@ contract RGSmartAccount_v10{
     ///@dev Is called when user balance becomes > 0
     ///@param user User to add
     function _addUser(address user) internal{
-        isSigner[user] = true;
-        for(uint i=0; i<totalSigners+1; i++){
-            if(signers[i] == address(0)){
-                signers[i] = user;
-            }
+        if(isSigner[user]){
+            return;
         }
+        signers[totalSigners] = user;
+        isSigner[user] = true;
         totalSigners++;
     }
 
@@ -191,17 +191,17 @@ contract RGSmartAccount_v10{
     ///@dev Is called when user balance becomes == 0
     ///@param user User to remove
     function _removeUser(address user) internal{
-        isSigner[user] = true;
-        uint256 signersLeft = totalSigners;
-        uint index;
-        while(signersLeft>0){
-            if(signers[index] == user){
-                signers[index] = address(0);
-            }
-            index++;
-            signersLeft--;
+        if(!isSigner[user]){
+            return;
         }
-        totalSigners--;
+        for(uint i=0; i<totalSigners; i++){
+            if(signers[i]==user){
+                    signers[i] = signers[totalSigners-1];
+                    signers[totalSigners-1] = address(0);
+                    isSigner[user] = false;
+                    totalSigners--;
+            }
+        }
     }
 }
 
